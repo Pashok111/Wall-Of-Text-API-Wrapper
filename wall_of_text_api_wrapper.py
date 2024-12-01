@@ -15,7 +15,7 @@ class TextResponseLatest(TextResponseV1):
 
 
 class WallOfTextAPIWrapperLatest(WallOfTextAPIWrapperV1):
-    def __init__(self, api_server):
+    def __init__(self, api_server: str):
         super().__init__(api_server)
 
     def create_text(self,

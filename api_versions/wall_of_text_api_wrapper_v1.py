@@ -12,6 +12,21 @@ class TextCreateV1:
     text: str
     username: str = "Anonymous"
 
+    def __post_init__(self):
+        errors = []
+        self.text = self.text.strip()
+        self.username = self.username.strip()
+        if not self.text:
+            errors.append("Text cannot be empty")
+        if not self.username:
+            errors.append("Username cannot be empty")
+        if len(self.username) < 3:
+            errors.append("Username must be at least 3 characters long")
+
+        if errors:
+            errors = "\n\nThe following errors occurred:\n" + "\n".join(errors)
+            raise ValueError(errors)
+
 
 @dataclass
 class TextResponseV1:
@@ -26,9 +41,9 @@ class WallOfTextAPIWrapperV1:
         self.api_server = api_server + "/v1"
 
         response = requests.get(self.api_server)
-        if response.status_code != 201:
-            raise HTTPError({"code": response.status_code,
-                             "response": response.json()})
+        if response.status_code != 200:
+            error = {"code": response.status_code, "response": response.json()}
+            raise HTTPError(error)
 
         welcome_text_start = "This is the Wall Of Text API."
         is_welcome_text = "welcome_text" in response.json()
@@ -36,27 +51,42 @@ class WallOfTextAPIWrapperV1:
             "welcome_text"].startswith(welcome_text_start)
 
         if not is_welcome_text or not is_welcome_text_right:
-            raise ValueError("Invalid API server")
+            error = "Invalid API server"
+            raise ValueError(error)
 
     def create_text(self,
                     text: str = None,
                     username: str = "Anonymous",
                     text_create: TextCreateV1 = None
                     ) -> TextResponseV1:
+        errors = []
         if text is None and text_create is None:
-            raise ValueError("One of the parameters \"text\" or "
-                             "\"text_create\" must be provided")
+            errors.append("One of the parameters \"text\" or "
+                          "\"text_create\" must be provided")
+        if text is not None and text_create is not None:
+            errors.append("Only one of the parameters \"text\" or "
+                          "\"text_create\" can be provided")
 
-        if text_create:
-            text = text_create.text
-            username = text_create.username
+        if (text_create is not None
+                and not isinstance(text_create, TextCreateV1)):
+            errors.append("text_create must be of type TextCreateV1")
+
+        if errors:
+            errors = "\n\nThe following errors occurred:\n" + "\n".join(errors)
+            raise ValueError(errors)
+
+        text_create = (text_create
+                       or TextCreateV1(text=text, username=username))  # noqa
+
+        text = text_create.text
+        username = text_create.username
 
         post_data = {"text": text, "username": username}
         response = requests.post(f"{self.api_server}/texts", json=post_data)
 
         if response.status_code != 201:
-            raise HTTPError({"code": response.status_code,
-                             "response": response.json()})
+            error = {"code": response.status_code, "response": response.json()}
+            raise HTTPError(error)
 
         return TextResponseV1(**response.json())
 
@@ -74,6 +104,6 @@ class WallOfTextAPIWrapperV1:
         url = f"{self.api_server}/texts?limit={limit}&offset={offset}"
         response = requests.get(url)
         if response.status_code != 200:
-            raise HTTPError({"code": response.status_code,
-                             "response": response.json()})
+            error = {"code": response.status_code, "response": response.json()}
+            raise HTTPError(error)
         return [TextResponseV1(**text) for text in response.json()]
