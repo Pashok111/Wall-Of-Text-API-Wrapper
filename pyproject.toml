@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wall_of_text_api_wrapper"
+version = "1.0.0"
+dependencies = ["requests"]
+requires-python = ">=3.8"
+authors = [
+  { name="Pashok11", email="pasha.m220@gmail.com" },
+]
+description = "Python wrapper for the Wall Of Text API"
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+keywords = ["wall of text", "wot", "api", "wrapper", "pashok11"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Pashok111/Wall-Of-Text-API-Wrapper"
+Repository = "https://github.com/Pashok111/Wall-Of-Text-API-Wrapper.git"
+Issues = "https://github.com/Pashok111/Wall-Of-Text-API-Wrapper/issues"
